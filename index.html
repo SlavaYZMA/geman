@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#F5EFE4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="description" content="Цифровой спутник для изучения немецкого языка">
+  <title>Deutsch · Companion</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --sand: #F5EFE4;
+      --card-bg: rgba(255,255,255,0.55);
+      --glass-border: rgba(255,255,255,0.65);
+      --glass-nav: rgba(245,239,228,0.85);
+      --text-primary: #2C2417;
+      --text-secondary: #7A6E62;
+      --text-hint: #B0A89E;
+      --der-color: #1A4B8C; --der-bg: #E8F0FB;
+      --die-color: #8C1A2E; --die-bg: #FBE8EC;
+      --das-color: #7A5C0A; --das-bg: #FBF3D8;
+      --verb-color: #2A6A4A; --verb-bg: #E8F0E8;
+      --easy: #3B6D11; --medium: #854F0B; --hard: #A32D2D;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+    }
+    html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', -apple-system, sans-serif; background: var(--sand); -webkit-font-smoothing: antialiased; }
+    .mesh-bg { position: fixed; inset: 0; z-index: 0; background: radial-gradient(ellipse 70% 60% at 15% 20%, rgba(201,192,218,0.55) 0%, transparent 60%), radial-gradient(ellipse 50% 50% at 85% 10%, rgba(245,220,180,0.45) 0%, transparent 55%), radial-gradient(ellipse 60% 70% at 75% 85%, rgba(180,210,200,0.40) 0%, transparent 60%), radial-gradient(ellipse 40% 40% at 30% 90%, rgba(220,200,240,0.35) 0%, transparent 50%), #F5EFE4; animation: meshShift 20s ease-in-out infinite alternate; }
+    @keyframes meshShift { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(14deg); } }
+    .app { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100dvh; height: 100vh; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: calc(14px + var(--safe-top)) 16px 10px; flex-shrink: 0; }
+    .topbar-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.5px; }
+    .pill { background: rgba(255,255,255,0.65); border: 1px solid var(--glass-border); border-radius: 20px; padding: 5px 11px; font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; backdrop-filter: blur(10px); white-space: nowrap; }
+    .pill b { color: var(--text-primary); font-weight: 500; }
+    .content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 13px 12px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .content::-webkit-scrollbar { display: none; }
+    .bento-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .span-2 { grid-column: span 2; }
+    .bento-card { background: var(--card-bg); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 13px; position: relative; overflow: hidden; cursor: pointer; transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1); -webkit-user-select: none; user-select: none; }
+    .bento-card:active { transform: scale(0.97); }
+    .card-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 20px 20px 0 0; }
+    .der-accent { background: linear-gradient(90deg,#1A4B8C,#4A7BC8); } .die-accent { background: linear-gradient(90deg,#8C1A2E,#C84A6A); } .das-accent { background: linear-gradient(90deg,#7A5C0A,#C4920F); } .verb-accent { background: linear-gradient(90deg,#2A6A4A,#4AAA7A); }
+    .badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 20px; }
+    .der-badge { background:var(--der-bg); color:var(--der-color); } .die-badge { background:var(--die-bg); color:var(--die-color); } .das-badge { background:var(--das-bg); color:var(--das-color); } .verb-badge { background:var(--verb-bg); color:var(--verb-color); }
+    .ai-badge { background:rgba(100,70,200,0.1); color:#5A3AAA; font-size:9px; padding:2px 6px; border-radius:20px; display:inline-block; }
+    .word-de { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2; margin-bottom: 2px; margin-top: 5px; }
+    .word-ru { font-size: 11px; color: var(--text-secondary); margin-bottom: 7px; }
+    .review-row { font-size: 10px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+    .due-now { background:#E24B4A; } .due-soon { background:#EF9F27; } .due-later { background:#639922; }
+    .stats-row { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+    .stat-card { background: rgba(255,255,255,0.50); border: 1px solid var(--glass-border); border-radius: 14px; padding: 11px 8px; text-align: center; backdrop-filter: blur(12px); }
+    .stat-num { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 500; color: var(--text-primary); line-height: 1; }
+    .stat-label { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+    .bottom-nav { display: flex; background: var(--glass-nav); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-top: 1px solid var(--glass-border); padding: 5px 0 calc(5px + var(--safe-bottom)); flex-shrink: 0; z-index: 50; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 5px 0; border: none; background: none; cursor: pointer; }
+    .nav-icon { font-size: 18px; line-height: 1; transition: transform 0.15s; }
+    .nav-label { font-size: 9px; color: var(--text-secondary); }
+    .nav-item.active .nav-label { color: var(--text-primary); font-weight: 500; }
+    .nav-item.active .nav-icon { transform: scale(1.12); }
+    .view { display: none; flex-direction: column; height: 100%; overflow: hidden; }
+    .view.active { display: flex; }
+    .section-label { font-size: 10px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .train-big { grid-column: span 2; background: rgba(255,255,255,0.70); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); border: 1px solid var(--glass-border); border-radius: 22px; padding: 18px 16px 16px; }
+    .ex-badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; background: rgba(100,70,200,0.1); color: #5A3AAA; }
+    .train-word-area { text-align: center; padding: 8px 0 6px; min-height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+    .big-word { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 500; color: var(--text-primary); letter-spacing: -1px; }
+    .type-hint { font-size: 12px; color: var(--text-secondary); }
+    .reveal-fade { opacity: 0; transform: translateY(5px); transition: opacity 0.3s, transform 0.3s; font-family: 'Fraunces', serif; font-size: 18px; color: var(--text-secondary); font-style: italic; }
+    .reveal-fade.show { opacity: 1; transform: translateY(0); }
+    .text-input-field { width: 100%; background: rgba(255,255,255,0.6); border: 1.5px solid rgba(44,36,23,0.15); border-radius: 12px; padding: 10px 13px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text-primary); outline: none; margin-top: 8px; text-align: center; }
+    .text-input-field:focus { border-color: rgba(44,36,23,0.35); }
+    .cloze-sentence { font-size: 14px; color: var(--text-primary); line-height: 1.9; text-align: center; }
+    .cloze-input { display: inline-block; border: none; border-bottom: 2px solid; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-primary); outline: none; width: 90px; text-align: center; padding: 0 4px; vertical-align: bottom; }
+    .grammar-prompt { font-size: 13px; color: var(--text-secondary); margin: 4px 0 6px; line-height: 1.5; }
+    .check-btn { width: 100%; background: rgba(44,36,23,0.07); border: 1px solid rgba(44,36,23,0.14); border-radius: 12px; padding: 11px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-primary); cursor: pointer; margin-top: 10px; }
+    .check-btn:active { background: rgba(44,36,23,0.14); }
+    .feedback { border-radius: 11px; padding: 9px 12px; font-size: 12px; margin-top: 8px; display: none; line-height: 1.4; }
+    .feedback.ok { background: #EAF3DE; color: var(--easy); }
+    .feedback.no { background: #FBE8EC; color: var(--hard); }
+    .sm-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-top: 10px; }
+    .sm-btn { border-radius: 12px; padding: 9px 4px; border: none; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); }
+    .sm-btn:active { transform: scale(0.95); }
+    .sm-btn.hard { background:#FBE8EC; color:var(--hard); } .sm-btn.medium { background:#FBF3D8; color:var(--medium); } .sm-btn.easy { background:#EAF3DE; color:var(--easy); }
+    .sm-days { font-size: 9px; opacity: 0.65; }
+    .progress-track { background: rgba(0,0,0,0.07); border-radius: 8px; height: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--text-primary); border-radius: 8px; transition: width 0.4s; }
+    .filter-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 10px; }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .filter-pill { flex-shrink: 0; padding: 5px 11px; border-radius: 20px; border: 1px solid rgba(44,36,23,0.14); background: rgba(255,255,255,0.5); font-family: 'DM Sans', sans-serif; font-size: 11px; cursor: pointer; color: var(--text-secondary); }
+    .filter-pill.active { background: var(--text-primary); color: var(--sand); border-color: var(--text-primary); }
+    .word-row { background: var(--card-bg); backdrop-filter: blur(14px); border: 1px solid var(--glass-border); border-radius: 15px; padding: 10px 12px; display: flex; align-items: center; gap: 9px; margin-bottom: 7px; cursor: pointer; transition: transform 0.15s; }
+    .word-row:active { transform: scale(0.98); }
+    .word-row-info { flex: 1; min-width: 0; }
+    .word-row-de { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 500; color: var(--text-primary); }
+    .word-row-ru { font-size: 10px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .word-row-right { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-secondary); flex-shrink: 0; }
+    .form-section { margin-bottom: 11px; }
+    .form-label { font-size: 10px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; display: block; }
+    .form-input { width: 100%; background: rgba(255,255,255,0.6); border: 1px solid rgba(44,36,23,0.14); border-radius: 12px; padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: rgba(44,36,23,0.35); }
+    .form-input.big { font-family: 'Fraunces', serif; font-size: 19px; }
+    .form-textarea { width: 100%; background: rgba(255,255,255,0.6); border: 1px solid rgba(44,36,23,0.14); border-radius: 12px; padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text-primary); outline: none; resize: none; min-height: 100px; line-height: 1.6; }
+    .form-textarea:focus { border-color: rgba(44,36,23,0.35); }
+    select.form-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%237A6E62' d='M0 0l5 7 5-7z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; cursor: pointer; }
+    .type-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 7px; }
+    .type-btn { padding: 10px; border-radius: 11px; border: 2px solid transparent; background: rgba(255,255,255,0.5); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; transition: all 0.15s; color: var(--text-secondary); }
+    .sel-auto { background:rgba(100,70,200,0.1); border-color:rgba(100,70,200,0.3); color:#5A3AAA; }
+    .sel-der { background:var(--der-bg); border-color:var(--der-color); color:var(--der-color); } .sel-die { background:var(--die-bg); border-color:var(--die-color); color:var(--die-color); } .sel-das { background:var(--das-bg); border-color:var(--das-color); color:var(--das-color); } .sel-verb { background:var(--verb-bg); border-color:var(--verb-color); color:var(--verb-color); }
+    .save-btn { width: 100%; background: var(--text-primary); color: var(--sand); border: none; border-radius: 13px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .save-btn:active { opacity: 0.8; }
+    .save-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .back-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary); padding: 0; line-height: 1; }
+    .ai-status { background: rgba(100,70,200,0.08); border: 1px solid rgba(100,70,200,0.18); border-radius: 11px; padding: 9px 12px; font-size: 12px; color: #5A3AAA; display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+    .spinner { width: 13px; height: 13px; border: 2px solid rgba(100,70,200,0.2); border-top-color: #5A3AAA; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .settings-title { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 7px; }
+    .settings-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px; }
+    .key-status { font-size: 11px; padding: 3px 9px; border-radius: 20px; display: inline-block; }
+    .key-ok { background:#EAF3DE; color:var(--easy); } .key-no { background:#FBE8EC; color:var(--hard); }
+    .example-item { background: rgba(255,255,255,0.5); border-radius: 9px; padding: 8px 10px; font-size: 12px; color: var(--text-primary); line-height: 1.5; margin-bottom: 5px; border-left: 3px solid; }
+    .grammar-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+    .grammar-row:last-child { border-bottom: none; }
+    .grammar-form { color: var(--text-secondary); } .grammar-val { color: var(--text-primary); font-weight: 500; }
+    .toast { position: fixed; bottom: calc(78px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(14px); background: var(--text-primary); color: var(--sand); padding: 9px 16px; border-radius: 20px; font-size: 12px; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; z-index: 200; white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .empty { text-align: center; padding: 36px 16px; color: var(--text-secondary); }
+    .empty-icon { font-size: 34px; margin-bottom: 9px; }
+    .empty-title { font-family: 'Fraunces', serif; font-size: 16px; margin-bottom: 4px; color: var(--text-primary); }
+    .empty-sub { font-size: 11px; line-height: 1.5; }
+    @media (min-width: 900px) {
+      html, body { overflow: auto; background: #EDE7D8; }
+      .mesh-bg { position: fixed; }
+      .app { max-width: 390px; height: 820px; margin: 32px auto; border-radius: 44px; overflow: hidden; box-shadow: 0 40px 80px rgba(44,36,23,0.18), 0 0 0 1px rgba(255,255,255,0.5); }
+    }
+  </style>
+</head>
+<body>
+<div class="mesh-bg"></div>
+<div class="app">
+
+  <div class="view active" id="view-home">
+    <div class="topbar">
+      <div class="topbar-title">Guten Tag ☀️</div>
+      <div class="pill">🔥 <b id="streak-num">14</b></div>
+    </div>
+    <div class="content">
+      <div class="bento-grid">
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-num" id="s-total">0</div><div class="stat-label">слов</div></div>
+          <div class="stat-card"><div class="stat-num" id="s-due" style="color:#E24B4A">0</div><div class="stat-label">сейчас</div></div>
+          <div class="stat-card"><div class="stat-num" id="s-acc">—</div><div class="stat-label">точность</div></div>
+        </div>
+        <div id="home-cards" class="span-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-train">
+    <div class="topbar">
+      <div class="topbar-title">Тренировка</div>
+      <div class="pill" id="train-counter">0 / 0</div>
+    </div>
+    <div class="content"><div id="train-body"></div></div>
+  </div>
+
+  <div class="view" id="view-words">
+    <div class="topbar">
+      <div class="topbar-title">Все слова</div>
+      <div class="pill" id="words-pill">0</div>
+    </div>
+    <div class="content">
+      <div class="filter-row">
+        <button class="filter-pill active" onclick="filterWords('all',this)">Все</button>
+        <button class="filter-pill" onclick="filterWords('der',this)">der</button>
+        <button class="filter-pill" onclick="filterWords('die',this)">die</button>
+        <button class="filter-pill" onclick="filterWords('das',this)">das</button>
+        <button class="filter-pill" onclick="filterWords('verb',this)">Verb</button>
+        <button class="filter-pill" onclick="filterWords('due',this)">⏰ Сейчас</button>
+      </div>
+      <div id="words-list"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-add">
+    <div class="topbar">
+      <button class="back-btn" onclick="switchView('home')">←</button>
+      <div class="topbar-title">Добавить</div>
+      <div style="width:28px"></div>
+    </div>
+    <div class="content">
+      <div class="bento-card span-2" style="margin-bottom:10px;cursor:default;">
+        <div class="section-label">режим</div>
+        <div class="type-grid" style="grid-template-columns: 1fr 1fr;">
+          <button id="mode-single" class="type-btn sel-das" onclick="setMode('single')">Одно слово</button>
+          <button id="mode-bulk"   class="type-btn"         onclick="setMode('bulk')">Список</button>
+        </div>
+      </div>
+
+      <div id="add-single">
+        <div class="form-section">
+          <label class="form-label">Слово на немецком</label>
+          <input class="form-input big" id="new-word" type="text" placeholder="z.B. Heimweh" autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
+        <div class="form-section">
+          <label class="form-label">Тип слова (можно доверить ИИ)</label>
+          <div class="type-grid">
+            <button class="type-btn sel-auto" id="btn-auto" onclick="selType('auto')">✨ ИИ определит</button>
+            <button class="type-btn" id="btn-das"  onclick="selType('das')">das</button>
+            <button class="type-btn" id="btn-der"  onclick="selType('der')">der</button>
+            <button class="type-btn" id="btn-die"  onclick="selType('die')">die</button>
+            <button class="type-btn" id="btn-verb" onclick="selType('verb')">Verb</button>
+          </div>
+        </div>
+        <div class="form-section">
+          <label class="form-label">Перевод <span style="color:var(--text-hint)">(необязательно, если есть API ключ)</span></label>
+          <input class="form-input" id="new-translation" type="text" placeholder="тоска по дому">
+        </div>
+        <div id="ai-single-status" style="display:none;" class="ai-status">
+          <div class="spinner"></div>
+          <span id="ai-single-msg">ИИ генерирует карточку…</span>
+        </div>
+        <button class="save-btn" id="save-single-btn" onclick="addSingle()">Сохранить</button>
+      </div>
+
+      <div id="add-bulk" style="display:none;">
+        <div class="form-section">
+          <label class="form-label">Список слов — по одному на строку</label>
+          <div class="settings-desc" style="font-size:10px;margin-bottom:6px;">Формат: <b>das Fenster — окно</b> или просто <b>Wanderlust</b> (ИИ сам переведет и поймет род)</div>
+          <textarea class="form-textarea" id="bulk-input" placeholder="das Fenster — окно&#10;Wanderlust&#10;aufräumen — убирать&#10;die Freude — радость"></textarea>
+        </div>
+        <div id="ai-bulk-status" style="display:none;" class="ai-status">
+          <div class="spinner"></div>
+          <span id="ai-bulk-msg">Обрабатываем список…</span>
+        </div>
+        <button class="save-btn" id="save-bulk-btn" onclick="addBulk()">Импортировать</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-settings">
+    <div class="topbar">
+      <div class="topbar-title">Настройки</div>
+    </div>
+    <div class="content">
+      <div class="bento-card span-2" style="margin-bottom:9px;cursor:default;">
+        <div class="settings-title">🤖 OpenRouter API</div>
+        <div class="settings-desc">Введи ключ — ИИ будет генерировать примеры и грамматику. Получить: <b>openrouter.ai/keys</b></div>
+        <div style="margin-bottom:8px;"><span class="key-status" id="key-status">нет ключа</span></div>
+        <input class="form-input" id="api-key-input" type="password" placeholder="sk-or-v1-...">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;">
+          <button class="save-btn" style="padding:10px;" onclick="saveApiKey()">Сохранить</button>
+          <button class="save-btn" style="padding:10px;background:rgba(140,26,46,0.08);color:var(--die-color);border:1px solid rgba(140,26,46,0.2);" onclick="clearApiKey()">Удалить</button>
+        </div>
+      </div>
+      <div class="bento-card span-2" style="margin-bottom:9px;cursor:default;">
+        <div class="settings-title">⚙️ Модель ИИ</div>
+        <select class="form-input" id="model-select" onchange="saveModel()">
+          <option value="openrouter/auto">Free Models Router (openrouter/auto)</option>
+          <option value="openrouter/free">Free Models (openrouter/free)</option>
+          <option value="google/gemini-2.0-flash-exp:free">gemini-2.0-flash-exp (бесплатно)</option>
+          <option value="google/gemini-flash-1.5">gemini-flash-1.5</option>
+          <option value="mistralai/mistral-7b-instruct:free">mistral-7b (бесплатно)</option>
+          <option value="meta-llama/llama-3.1-8b-instruct:free">llama-3.1-8b (бесплатно)</option>
+        </select>
+      </div>
+      <div class="bento-card span-2" style="margin-bottom:9px;cursor:default;">
+        <div class="settings-title" style="margin-bottom:8px;">📊 Статистика</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;" id="stats-details"></div>
+      </div>
+      <div class="bento-card span-2" style="background:rgba(140,26,46,0.05);border-color:rgba(140,26,46,0.14);cursor:default;">
+        <div class="settings-title" style="color:var(--die-color);margin-bottom:5px;">⚠️ Сброс</div>
+        <div class="settings-desc">Удалит все слова и прогресс.</div>
+        <button onclick="resetAll()" style="background:var(--die-bg);color:var(--die-color);border:1px solid rgba(140,26,46,0.2);border-radius:11px;padding:8px 14px;font-family:inherit;font-size:12px;cursor:pointer;">Сбросить всё</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-detail">
+    <div class="topbar">
+      <button class="back-btn" id="detail-back">←</button>
+      <div class="topbar-title" id="detail-title">Слово</div>
+      <div style="width:28px"></div>
+    </div>
+    <div class="content" id="detail-content"></div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-home"     onclick="switchView('home')"><span class="nav-icon">⌂</span><span class="nav-label">Главная</span></button>
+    <button class="nav-item"        id="nav-train"    onclick="switchView('train')"><span class="nav-icon">◈</span><span class="nav-label">Учить</span></button>
+    <button class="nav-item"        id="nav-words"    onclick="switchView('words')"><span class="nav-icon">≡</span><span class="nav-label">Слова</span></button>
+    <button class="nav-item"        id="nav-add"      onclick="switchView('add')"><span class="nav-icon">＋</span><span class="nav-label">Добавить</span></button>
+    <button class="nav-item"        id="nav-settings" onclick="switchView('settings')"><span class="nav-icon">⚙</span><span class="nav-label">API</span></button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const WK='deutsch_words_v3', SK='deutsch_stats_v2', AK='deutsch_api_key', MK='deutsch_model';
+const DEMO=[
+  {id:1,de:'Fenster',ru:'окно',type:'das',ease:2.5,interval:4,reps:3,nextReview:dfn(4),examples:['Das ___ ist weit geöffnet.','Er schaut durch das ___.','Das Licht kommt durch das ___ herein.','Sie putzt das ___ jeden Samstag.'],grammar:null},
+  {id:2,de:'Heimweh',ru:'тоска по дому',type:'das',ease:1.8,interval:0,reps:0,nextReview:dfn(0),examples:['Er hat ___, seitdem er die Stadt verlassen hat.','Das ___ wurde immer stärker.','Sie leidet unter großem ___.','___ ist ein bekanntes Gefühl.'],grammar:null},
+  {id:3,de:'Wanderlust',ru:'страсть к путешествиям',type:'die',ease:2.1,interval:0,reps:1,nextReview:dfn(0),examples:['Die ___ treibt sie in die Welt.','Er folgte seiner ___.','___ ist typisch für junge Menschen.','Sie kann ihre ___ kaum zügeln.'],grammar:null},
+  {id:4,de:'aufräumen',ru:'убирать',type:'verb',ease:2.3,interval:1,reps:2,nextReview:dfn(1),examples:['Er räumt sein Zimmer ___.','Kannst du bitte ___?','Sie hat gestern die Küche aufgeräumt.','Es ist Zeit aufzuräumen.'],grammar:{infinitiv:'aufräumen',prasens:'räumt auf',prateritum:'räumte auf',perfekt:'hat aufgeräumt',konjugation:[['ich','räume auf'],['du','räumst auf'],['er/sie','räumt auf'],['wir','räumen auf'],['ihr','räumt auf'],['sie','räumen auf']]}},
+  {id:5,de:'Freude',ru:'радость',type:'die',ease:2.8,interval:7,reps:4,nextReview:dfn(7),examples:['Die ___ war sehr groß.','Er strahlte vor ___.','___ ist ein schönes Gefühl.','Sie teilte ihre ___ mit allen.'],grammar:null},
+  {id:6,de:'Weltschmerz',ru:'мировая скорбь',type:'der',ease:2.0,interval:2,reps:1,nextReview:dfn(2),examples:['Er leidet am ___.','Der ___ überwältigte ihn.','___ ist schwer zu beschreiben.','Sie kennt den ___ gut.'],grammar:null},
+];
+
+function dfn(n){const d=new Date();d.setDate(d.getDate()+n);d.setHours(0,0,0,0);return d.toISOString();}
+function today(){const d=new Date();d.setHours(0,0,0,0);return d;}
+function isDue(w){return new Date(w.nextReview)<=today();}
+function daysUntil(w){return Math.max(0,Math.ceil((new Date(w.nextReview)-today())/86400000));}
+
+let words=[],stats={total:0,correct:0,streak:14},selType_='auto',addMode='single';
+let trainQ=[],trainIdx=0,sesC=0,sesW=0,curExType='flashcard',detailBack='words';
+
+function loadData(){try{const s=localStorage.getItem(WK);words=s?JSON.parse(s):JSON.parse(JSON.stringify(DEMO));}catch(e){words=JSON.parse(JSON.stringify(DEMO));}try{const s=localStorage.getItem(SK);if(s)stats=JSON.parse(s);}catch(e){}}
+function saveData(){localStorage.setItem(WK,JSON.stringify(words));localStorage.setItem(SK,JSON.stringify(stats));}
+function getKey(){return localStorage.getItem(AK)||'';}
+function getModel(){return localStorage.getItem(MK)||'openrouter/auto';}
+
+function sm2(w,q){let{ease,interval,reps}=w;if(q>=3){reps===0?interval=1:reps===1?interval=6:interval=Math.round(interval*ease);reps++;ease=Math.max(1.3,ease+0.1-(5-q)*0.08);}else{reps=0;interval=1;}w.ease=parseFloat(ease.toFixed(2));w.interval=interval;w.reps=reps;w.nextReview=dfn(interval);}
+
+let currentView='home';
+function switchView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  const ni=document.getElementById('nav-'+v);if(ni)ni.classList.add('active');
+  currentView=v;
+  if(v==='home')renderHome();
+  if(v==='train')startTrain();
+  if(v==='words')renderWords('all');
+  if(v==='add')resetAdd();
+  if(v==='settings')renderSettings();
+}
+
+// HOME
+function renderHome(){
+  const due=words.filter(isDue);
+  document.getElementById('s-total').textContent=words.length;
+  document.getElementById('s-due').textContent=due.length;
+  document.getElementById('s-acc').textContent=stats.total>0?Math.round(stats.correct/stats.total*100)+'%':'—';
+  const c=document.getElementById('home-cards');
+  if(!words.length){c.innerHTML='<div class="empty"><div class="empty-icon">📖</div><div class="empty-title">Пока пусто</div><div class="empty-sub">Нажми «+» и добавь первое слово</div></div>';return;}
+  const display=[...words].sort((a,b)=>new Date(a.nextReview)-new Date(b.nextReview)).slice(0,6);
+  c.innerHTML=display.map(w=>{
+    const due=isDue(w),days=daysUntil(w);
+    const dc=due?'due-now':days<=2?'due-soon':'due-later';
+    const txt=due?'сейчас':days===1?'завтра':`+${days}д`;
+    const ai=w.examples&&w.examples.length?'<span class="ai-badge" style="margin-left:3px;">AI</span>':'';
+    return `<div class="bento-card" onclick="openDetail(${w.id},'home')">
+      <div class="card-accent ${w.type}-accent"></div>
+      <span class="badge ${w.type}-badge">${w.type==='verb'?'Verb':w.type}</span>${ai}
+      <div class="word-de">${w.de}</div>
+      <div class="word-ru">${w.ru}</div>
+      <div class="review-row"><span class="dot ${dc}"></span>${txt}</div>
+    </div>`;
+  }).join('');
+}
+
+// TRAIN
+function startTrain(){trainQ=words.filter(isDue);if(!trainQ.length)trainQ=[...words].sort((a,b)=>new Date(a.nextReview)-new Date(b.nextReview)).slice(0,8);trainIdx=0;sesC=0;sesW=0;renderTrain();}
+
+function pickType(w){const a=['flashcard'];if(w.examples&&w.examples.length)a.push('cloze');a.push('listening');if(w.type==='verb'&&w.grammar)a.push('grammar');return a[Math.floor(Math.random()*a.length)];}
+
+function renderTrain(){
+  const body=document.getElementById('train-body');
+  if(!trainQ.length){body.innerHTML='<div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">Готово!</div><div class="empty-sub">Добавь новые слова</div></div>';return;}
+  const w=trainQ[trainIdx%trainQ.length];
+  const total=Math.min(trainQ.length,10);
+  document.getElementById('train-counter').textContent=`${(trainIdx%total)+1} / ${total}`;
+  curExType=pickType(w);
+  const pct=Math.round(((sesC+sesW)/Math.max(total,1))*100);
+  const tc=w.type==='der'?'var(--der-color)':w.type==='die'?'var(--die-color)':w.type==='das'?'var(--das-color)':'var(--verb-color)';
+  let ex='';
+
+  if(curExType==='flashcard'){
+    ex=`<div class="train-big">
+      <div class="section-label">Flashcard</div>
+      <div class="ex-badge">Перевод</div>
+      <div class="train-word-area">
+        <div class="big-word">${w.de}</div>
+        <div class="type-hint" style="color:${tc}">${w.type==='verb'?'Verb':w.type+' · Substantiv'}</div>
+        <div class="reveal-fade" id="rv">${w.ru}</div>
+      </div>
+      <button class="check-btn" id="reveal-btn" onclick="revealFlash()">показать перевод</button>
+      <div class="sm-btns" id="sm-btns" style="display:none">
+        <button class="sm-btn hard" onclick="rateSM(1)">Сложно<div class="sm-days">+1д</div></button>
+        <button class="sm-btn medium" onclick="rateSM(3)">Нормально<div class="sm-days">+${w.interval>0?Math.round(w.interval*(w.ease||2.5)):4}д</div></button>
+        <button class="sm-btn easy" onclick="rateSM(5)">Легко<div class="sm-days">+${w.interval>0?Math.round(w.interval*(w.ease||2.5)*1.5):10}д</div></button>
+      </div>
+    </div>`;
+  } else if(curExType==='cloze'){
+    const sentence=w.examples[Math.floor(Math.random()*w.examples.length)];
+    ex=`<div class="train-big">
+      <div class="section-label">Cloze Test</div>
+      <div class="ex-badge">Вставь слово</div>
+      <div class="train-word-area" style="min-height:60px;">
+        <div class="cloze-sentence">${sentence.replace('___',`<input class="cloze-input" id="cloze-in" style="border-color:${tc}" placeholder="???" autocorrect="off" spellcheck="false">`)}</div>
+        <div class="type-hint" style="margin-top:6px;color:${tc}">${w.type==='verb'?'Verb':w.type+' '+w.de}</div>
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="check-btn" id="check-btn" onclick="checkCloze('${esc(w.de)}','${esc(w.ru)}')">Проверить</button>
+      <div class="sm-btns" id="sm-btns" style="display:none">
+        <button class="sm-btn hard" onclick="rateSM(1)">Сложно<div class="sm-days">+1д</div></button>
+        <button class="sm-btn medium" onclick="rateSM(3)">Нормально</button>
+        <button class="sm-btn easy" onclick="rateSM(5)">Легко</button>
+      </div>
+    </div>`;
+  } else if(curExType==='listening'){
+    ex=`<div class="train-big">
+      <div class="section-label">Listening</div>
+      <div class="ex-badge">Напиши на слух</div>
+      <div class="train-word-area" style="min-height:70px;">
+        <button onclick="speakW('${esc(w.de)}')" style="background:rgba(44,36,23,0.08);border:1px solid rgba(44,36,23,0.14);border-radius:30px;padding:11px 22px;font-family:inherit;font-size:13px;cursor:pointer;color:var(--text-primary);">🔊 Прослушать</button>
+        <input class="text-input-field" id="listen-in" placeholder="Напиши что слышишь…" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="check-btn" id="check-btn" onclick="checkListen('${esc(w.de)}','${esc(w.ru)}')">Проверить</button>
+      <div class="sm-btns" id="sm-btns" style="display:none">
+        <button class="sm-btn hard" onclick="rateSM(1)">Сложно<div class="sm-days">+1д</div></button>
+        <button class="sm-btn medium" onclick="rateSM(3)">Нормально</button>
+        <button class="sm-btn easy" onclick="rateSM(5)">Легко</button>
+      </div>
+    </div>`;
+  } else if(curExType==='grammar'){
+    const g=w.grammar;
+    const forms=[['Infinitiv',g.infinitiv],['Präsens (er/sie)',g.prasens],['Präteritum',g.prateritum],['Perfekt',g.perfekt]];
+    const tf=forms[Math.floor(Math.random()*forms.length)];
+    ex=`<div class="train-big">
+      <div class="section-label">Grammar Check</div>
+      <div class="ex-badge">Глагольная форма</div>
+      <div class="train-word-area" style="min-height:70px;">
+        <div class="big-word" style="font-size:26px;">${w.de}</div>
+        <div class="grammar-prompt">Напиши форму: <b>${tf[0]}</b></div>
+        <input class="text-input-field" id="grammar-in" placeholder="${tf[0]}…" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="feedback" id="fb"></div>
+      <button class="check-btn" id="check-btn" onclick="checkGrammar('${esc(tf[1])}','${esc(tf[0])}')">Проверить</button>
+      <div class="sm-btns" id="sm-btns" style="display:none">
+        <button class="sm-btn hard" onclick="rateSM(1)">Сложно<div class="sm-days">+1д</div></button>
+        <button class="sm-btn medium" onclick="rateSM(3)">Нормально</button>
+        <button class="sm-btn easy" onclick="rateSM(5)">Легко</button>
+      </div>
+    </div>`;
+  }
+
+  const ctxBlock=w.examples&&w.examples.length?`<div class="bento-card span-2" style="padding:12px 13px;cursor:default;"><div class="section-label">контекст · B1</div><div style="font-size:13px;color:var(--text-primary);line-height:1.7">${w.examples[0].replace('___',`<span style="border-bottom:2px solid ${tc};padding-bottom:1px;">___</span>`)}</div></div>`:'';
+
+  body.innerHTML=`<div class="bento-grid" style="padding-bottom:8px;">
+    ${ex}${ctxBlock}
+    <div class="bento-card" style="padding:11px;cursor:default;">
+      <div class="section-label">прогресс</div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">✓${sesC} ✗${sesW}</div>
+    </div>
+    <div class="bento-card" style="padding:11px;cursor:default;">
+      <div class="section-label">произношение</div>
+      <button onclick="speakW('${esc(w.de)}')" style="background:rgba(44,36,23,0.07);border:1px solid rgba(44,36,23,0.12);border-radius:10px;padding:7px 13px;font-family:inherit;font-size:12px;cursor:pointer;color:var(--text-primary);">▶ DE</button>
+    </div>
+  </div>`;
+  setupSwipe(body.querySelector('.train-big'));
+}
+
+function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function revealFlash(){document.getElementById('rv').classList.add('show');document.getElementById('reveal-btn').style.display='none';document.getElementById('sm-btns').style.display='grid';}
+
+function checkCloze(de,ru){const inp=document.getElementById('cloze-in');if(!inp)return;const ans=inp.value.trim().toLowerCase(),cor=de.toLowerCase();const fb=document.getElementById('fb');fb.style.display='block';if(ans===cor||cor.includes(ans)&&ans.length>2){fb.className='feedback ok';fb.textContent='✓ Верно! '+de+' — '+ru;stats.correct++;}else{fb.className='feedback no';fb.textContent='✗ Правильно: '+de;}stats.total++;saveData();document.getElementById('check-btn').style.display='none';inp.disabled=true;document.getElementById('sm-btns').style.display='grid';}
+
+function checkListen(de,ru){const inp=document.getElementById('listen-in');if(!inp)return;const norm=s=>s.trim().toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss');const fb=document.getElementById('fb');fb.style.display='block';if(norm(inp.value)===norm(de)){fb.className='feedback ok';fb.textContent='✓ Точно! '+de;stats.correct++;}else{fb.className='feedback no';fb.textContent='✗ Правильно: '+de+' ('+ru+')';}stats.total++;saveData();document.getElementById('check-btn').style.display='none';inp.disabled=true;document.getElementById('sm-btns').style.display='grid';}
+
+function checkGrammar(correct,formName){const inp=document.getElementById('grammar-in');if(!inp)return;const fb=document.getElementById('fb');fb.style.display='block';if(inp.value.trim().toLowerCase()===correct.toLowerCase()){fb.className='feedback ok';fb.textContent='✓ Верно! '+formName+': '+correct;stats.correct++;}else{fb.className='feedback no';fb.textContent='✗ Правильно: '+correct;}stats.total++;saveData();document.getElementById('check-btn').style.display='none';inp.disabled=true;document.getElementById('sm-btns').style.display='grid';}
+
+function rateSM(q){const w=trainQ[trainIdx%trainQ.length];sm2(w,q);q>=3?sesC++:sesW++;saveData();trainIdx++;if(trainIdx>=Math.min(trainQ.length,10)){showToast(`Сессия! ✓${sesC} ✗${sesW}`);sesC=0;sesW=0;trainIdx=0;}renderTrain();}
+
+function speakW(t){if(!('speechSynthesis' in window)){showToast('Аудио недоступно');return;}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='de-DE';u.rate=0.82;speechSynthesis.speak(u);}
+
+function setupSwipe(el){if(!el)return;let sx=0;el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>55&&curExType==='flashcard'){const sm=document.getElementById('sm-btns');if(sm&&sm.style.display==='none'){revealFlash();return;}if(sm&&sm.style.display!=='none'){dx>0?rateSM(5):rateSM(1);}}},{passive:true});}
+
+// WORDS
+function renderWords(f){
+  document.getElementById('words-pill').textContent=words.length+' слов';
+  const filtered=f==='all'?words:f==='due'?words.filter(isDue):words.filter(w=>w.type===f);
+  const list=document.getElementById('words-list');
+  if(!filtered.length){list.innerHTML='<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">Пусто</div></div>';return;}
+  list.innerHTML=filtered.map(w=>{const due=isDue(w),days=daysUntil(w);const dc=due?'due-now':days<=2?'due-soon':'due-later';const rt=due?'сейчас':days===1?'завтра':`+${days}д`;const ai=w.examples&&w.examples.length?' <span class="ai-badge">AI</span>':'';return`<div class="word-row" onclick="openDetail(${w.id},'words')"><span class="badge ${w.type}-badge">${w.type==='verb'?'Verb':w.type}</span><div class="word-row-info"><div class="word-row-de">${w.de}${ai}</div><div class="word-row-ru">${w.ru}</div></div><div class="word-row-right"><span class="dot ${dc}"></span>${rt}</div></div>`}).join('');}
+function filterWords(f,btn){document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderWords(f);}
+
+// DETAIL
+function openDetail(id,from){
+  const w=words.find(x=>x.id===id);if(!w)return;
+  detailBack=from||'words';
+  document.getElementById('detail-back').onclick=()=>switchView(detailBack);
+  document.getElementById('detail-title').textContent=w.de;
+  const tc=w.type==='der'?'var(--der-color)':w.type==='die'?'var(--die-color)':w.type==='das'?'var(--das-color)':'var(--verb-color)';
+  const due=isDue(w),days=daysUntil(w);
+  const dc=due?'due-now':days<=2?'due-soon':'due-later';
+  const rt=due?'сейчас':days===1?'завтра':`через ${days} дн.`;
+  let gHTML='';
+  if(w.grammar){const g=w.grammar;gHTML=`<div class="bento-card span-2" style="cursor:default;margin-top:8px;"><div class="section-label">грамматика</div>${[['Infinitiv',g.infinitiv],['Präsens',g.prasens],['Präteritum',g.prateritum],['Perfekt',g.perfekt]].map(([f,v])=>`<div class="grammar-row"><span class="grammar-form">${f}</span><span class="grammar-val">${v}</span></div>`).join('')}${g.konjugation?`<div style="margin-top:7px;font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:3px;">Konjugation</div>`+g.konjugation.map(([p,f])=>`<div class="grammar-row"><span class="grammar-form">${p}</span><span class="grammar-val">${f}</span></div>`).join(''):''}${g.prefix?`<div style="margin-top:6px;font-size:11px;color:var(--verb-color);">Приставка отделяемая: <b>${g.prefix}</b></div>`:''}  </div>`;}
+  let eHTML='';if(w.examples&&w.examples.length){eHTML=`<div class="bento-card span-2" style="cursor:default;margin-top:8px;"><div class="section-label">примеры · B1</div>${w.examples.map(ex=>`<div class="example-item" style="border-left-color:${tc}">${ex.replace('___',`<b style="color:${tc}">___</b>`)}</div>`).join('')}</div>`;}
+  document.getElementById('detail-content').innerHTML=`<div class="bento-grid"><div class="bento-card span-2" style="padding:16px;cursor:default;"><div class="card-accent ${w.type}-accent"></div><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span class="badge ${w.type}-badge">${w.type==='verb'?'Verb':w.type}</span>${w.examples&&w.examples.length?'<span class="ai-badge">AI</span>':''}</div><div style="font-family:'Fraunces',serif;font-size:30px;font-weight:500;color:var(--text-primary);letter-spacing:-1px;">${w.de}</div><div style="font-size:14px;color:var(--text-secondary);margin-top:3px;">${w.ru}</div><div style="display:flex;align-items:center;gap:5px;margin-top:9px;font-size:10px;color:var(--text-secondary);"><span class="dot ${dc}"></span>${rt} · повт: ${w.reps} · интервал: ${w.interval}д</div></div><div class="bento-card" style="padding:11px;cursor:default;"><div class="section-label">произношение</div><button onclick="speakW('${esc(w.de)}')" style="background:rgba(44,36,23,0.07);border:1px solid rgba(44,36,23,0.12);border-radius:10px;padding:7px 13px;font-family:inherit;font-size:12px;cursor:pointer;color:var(--text-primary);">▶ DE</button></div><div class="bento-card" style="padding:11px;cursor:default;"><div class="section-label">тренировать</div><button onclick="trainWord(${w.id})" style="background:rgba(44,36,23,0.07);border:1px solid rgba(44,36,23,0.12);border-radius:10px;padding:7px 13px;font-family:inherit;font-size:12px;cursor:pointer;color:var(--text-primary);">◈ Учить</button></div>${gHTML}${eHTML}<div class="span-2" style="margin-top:4px;"><button onclick="deleteWord(${w.id})" style="width:100%;background:rgba(140,26,46,0.07);color:var(--die-color);border:1px solid rgba(140,26,46,0.15);border-radius:11px;padding:9px;font-family:inherit;font-size:12px;cursor:pointer;">Удалить слово</button></div></div>`;
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));document.getElementById('view-detail').classList.add('active');currentView='detail';
+}
+function trainWord(id){const w=words.find(x=>x.id===id);if(!w)return;trainQ=[w,...words.filter(x=>x.id!==id&&isDue(x))];trainIdx=0;sesC=0;sesW=0;switchView('train');}
+function deleteWord(id){words=words.filter(w=>w.id!==id);saveData();showToast('Слово удалено');switchView(detailBack);}
+
+// ADD
+function setMode(m){addMode=m;document.getElementById('add-single').style.display=m==='single'?'block':'none';document.getElementById('add-bulk').style.display=m==='bulk'?'block':'none';document.getElementById('mode-single').className='type-btn'+(m==='single'?' sel-das':'');document.getElementById('mode-bulk').className='type-btn'+(m==='bulk'?' sel-das':'');}
+function selType(t){selType_=t;['auto','der','die','das','verb'].forEach(x=>{const el=document.getElementById('btn-'+x);if(el)el.className='type-btn'+(x===t?' sel-'+(t==='auto'?'auto':t):'');});}
+function resetAdd(){setMode('single');selType('auto');['new-word','new-translation','bulk-input'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}
+
+async function callAI(prompt){const key=getKey();if(!key)return null;try{const r=await fetch('https://openrouter.ai/api/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,'HTTP-Referer':'https://deutsch-companion.app','X-Title':'Deutsch Companion'},body:JSON.stringify({model:getModel(),max_tokens:900,messages:[{role:'user',content:prompt}]})});if(!r.ok)return null;const d=await r.json();return d.choices?.[0]?.message?.content||null;}catch(e){return null;}}
+
+function buildPrompt(de,type){
+  const isVerb=type==='verb';
+  return `Du bist ein Deutschlehrer. Analysiere das Wort: "${de}". ${type !== 'auto' ? `(Es ist: ${type})` : ''}
+Antworte NUR mit einem JSON-Objekt (kein Markdown):
+{
+  "translation": "russisch",
+  "type": "der" | "die" | "das" | "verb" | "other",
+  "examples": ["B1 Satz mit ___", "B1 Satz mit ___", "B1 Satz mit ___", "B1 Satz mit ___"],
+  "grammar": null // WICHTIG: NUR ausfüllen, wenn es ein Verb ist! Format: {"infinitiv":"...","prasens":"er/sie Form","prateritum":"er/sie Form","perfekt":"hat/ist ...","prefix":"Vorsilbe oder null","konjugation":[["ich","..."],["du","..."],["er/sie","..."],["wir","..."],["ihr","..."],["sie","..."]]}
+}`;
+}
+
+async function parseAI(raw,ruFallback,originalType){
+  let ru=ruFallback,examples=[],grammar=null,type=originalType;
+  if(raw){
+    try{
+      const c=raw.replace(/```json|```/gi,'').trim();
+      const p=JSON.parse(c);
+      if(!ru&&p.translation)ru=p.translation;
+      if(p.examples)examples=p.examples;
+      if(p.grammar)grammar=p.grammar;
+      if(p.type&&['der','die','das','verb'].includes(p.type))type=p.type;
+    }catch(e){}
+  }
+  if(type==='auto')type='das'; // Фолбэк, если ИИ не справился
+  return {ru,examples,grammar,type};
+}
+
+async function addSingle(){
+  const de=document.getElementById('new-word').value.trim();
+  const ruM=document.getElementById('new-translation').value.trim();
+  if(!de){showToast('Введи немецкое слово');return;}
+  const key=getKey();const btn=document.getElementById('save-single-btn');const st=document.getElementById('ai-single-status');
+  btn.disabled=true;
+  let ru=ruM,examples=[],grammar=null,finalType=selType_;
+
+  if(key){
+    st.style.display='flex';document.getElementById('ai-single-msg').textContent='ИИ генерирует карточку…';
+    const raw=await callAI(buildPrompt(de,selType_));
+    st.style.display='none';
+    const p=await parseAI(raw,ruM,selType_);
+    ru=p.ru;examples=p.examples;grammar=p.grammar;finalType=p.type;
+  }
+  if(finalType==='auto') finalType='das';
+
+  if(!ru){btn.disabled=false;showToast('Введи перевод');return;}
+  words.push({id:Date.now(),de,ru,type:finalType,ease:2.5,interval:0,reps:0,nextReview:dfn(0),examples,grammar});
+  saveData();btn.disabled=false;
+  showToast(key&&examples.length?'Добавлено + AI карточка ✓':'Слово добавлено');
+  setTimeout(()=>switchView('home'),500);
+}
+
+async function addBulk(){
+  const raw=document.getElementById('bulk-input').value.trim();
+  if(!raw){showToast('Вставь список');return;}
+  const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l);
+  if(!lines.length)return;
+  const key=getKey();const btn=document.getElementById('save-bulk-btn');const st=document.getElementById('ai-bulk-status');
+  btn.disabled=true;let added=0;
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];const sep=line.includes('—')?'—':line.includes(' - ')?' - ':null;
+    let de='',ru='',type='auto';
+    const detect=raw=>{if(raw.match(/^der /i))return{de:raw.slice(4).trim(),type:'der'};if(raw.match(/^die /i))return{de:raw.slice(4).trim(),type:'die'};if(raw.match(/^das /i))return{de:raw.slice(4).trim(),type:'das'};return{de:raw,type:'auto'};};
+    if(sep){const parts=line.split(sep).map(p=>p.trim());const r=detect(parts[0]);de=r.de;type=r.type;ru=parts[1]||'';}else{const r=detect(line);de=r.de;type=r.type;}
+    if(!de)continue;
+    let examples=[],grammar=null;
+    
+    if(key){
+      st.style.display='flex';document.getElementById('ai-bulk-msg').textContent=`(${i+1}/${lines.length}) ИИ анализирует ${de}…`;
+      const rawAI=await callAI(buildPrompt(de,type));
+      const p=await parseAI(rawAI,ru,type);
+      if(!ru)ru=p.ru;examples=p.examples;grammar=p.grammar;type=p.type;
+    }
+    if(type==='auto') type='das'; // Фолбэк
+    if(!ru)ru='...';
+    
+    words.push({id:Date.now()+Math.random(),de,ru,type,ease:2.5,interval:0,reps:0,nextReview:dfn(0),examples,grammar});
+    added++;await new Promise(r=>setTimeout(r,300));
+  }
+  st.style.display='none';btn.disabled=false;saveData();
+  showToast(`Добавлено ${added} слов${key?' + AI':''}` );setTimeout(()=>switchView('words'),600);
+}
+
+// SETTINGS
+function saveApiKey(){const k=document.getElementById('api-key-input').value.trim();if(!k){showToast('Введи ключ');return;}localStorage.setItem(AK,k);document.getElementById('api-key-input').value='';updateKeyStatus();showToast('Ключ сохранён ✓');}
+function clearApiKey(){localStorage.removeItem(AK);updateKeyStatus();showToast('Ключ удалён');}
+function saveModel(){localStorage.setItem(MK,document.getElementById('model-select').value);showToast('Сохранено');}
+function updateKeyStatus(){const k=getKey();const el=document.getElementById('key-status');if(el){el.textContent=k?'ключ активен ✓':'нет ключа';el.className='key-status '+(k?'key-ok':'key-no');}}
+function renderSettings(){updateKeyStatus();const sel=document.getElementById('model-select');if(sel)sel.value=getModel();const sd=document.getElementById('stats-details');if(sd)sd.innerHTML=`<div class="stat-card"><div class="stat-num">${words.length}</div><div class="stat-label">слов</div></div><div class="stat-card"><div class="stat-num">${stats.total}</div><div class="stat-label">ответов</div></div><div class="stat-card"><div class="stat-num">${stats.total>0?Math.round(stats.correct/stats.total*100)+'%':'—'}</div><div class="stat-label">точность</div></div><div class="stat-card"><div class="stat-num">${stats.streak}</div><div class="stat-label">streak</div></div>`;}
+function resetAll(){if(!confirm('Удалить всё?'))return;localStorage.removeItem(WK);localStorage.removeItem(SK);words=JSON.parse(JSON.stringify(DEMO));stats={total:0,correct:0,streak:0};saveData();showToast('Сброшено');switchView('home');}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+
+loadData();renderHome();
+</script>
+</body>
+</html>
